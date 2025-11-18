@@ -20,8 +20,24 @@ export interface MembersModalProps {
 }
 
 export const MembersModal = (props: MembersModalProps) => {
-  const { open, company, loading, members, inviteEmail, inviteRole, currentUserRole, onClose, onChangeInviteEmail, onChangeInviteRole, onInvite, onDeleteMember } = props;
+  const {
+    open,
+    company,
+    loading,
+    members,
+    inviteEmail,
+    inviteRole,
+    currentUserRole,
+    onClose,
+    onChangeInviteEmail,
+    onChangeInviteRole,
+    onInvite,
+    onDeleteMember,
+  } = props;
   if (!open || !company) return null;
+
+  const canInviteMembers =
+    currentUserRole === "OWNER" || currentUserRole === "ADMIN";
 
   const canDeleteMember = (memberRole: string) => {
     if (!currentUserRole) return false;
@@ -34,7 +50,9 @@ export const MembersModal = (props: MembersModalProps) => {
       <Card className="w/full max-w-xl relative">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b">
           <CardTitle>Membros - {company.name}</CardTitle>
-          <Button variant="ghost" onClick={onClose}>Fechar</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Fechar
+          </Button>
         </CardHeader>
         <CardContent className="space-y-6">
           {loading && <p className="text-sm">Carregando membros...</p>}
@@ -54,13 +72,17 @@ export const MembersModal = (props: MembersModalProps) => {
                     <tr key={m.membershipId} className="odd:bg-muted/30">
                       <td className="py-1 pr-2">{m.name || "-"}</td>
                       <td className="py-1 pr-2">{m.email}</td>
-                      <td className="py-1 pr-2 uppercase text-xs font-medium">{m.role}</td>
+                      <td className="py-1 pr-2 uppercase text-xs font-medium">
+                        {m.role}
+                      </td>
                       <td className="py-1 pr-2">
                         {canDeleteMember(m.role) && (
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => onDeleteMember(m.membershipId, m.role)}
+                            onClick={() =>
+                              onDeleteMember(m.membershipId, m.role)
+                            }
                           >
                             Remover
                           </Button>
@@ -69,25 +91,46 @@ export const MembersModal = (props: MembersModalProps) => {
                     </tr>
                   ))}
                   {members.length === 0 && (
-                    <tr><td colSpan={4} className="py-2 text-muted-foreground text-xs">Nenhum membro.</td></tr>
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="py-2 text-muted-foreground text-xs"
+                      >
+                        Nenhum membro.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
-              <form onSubmit={onInvite} className="flex flex-col gap-3 border-t pt-4">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Input type="email" placeholder="Email" value={inviteEmail} onChange={(e) => onChangeInviteEmail(e.target.value)} />
-                  <select className="h-9 rounded-md border bg-background px-3 text-sm" value={inviteRole} onChange={(e)=> onChangeInviteRole(e.target.value)}>
-                    <option value="MEMBER">MEMBER</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="OWNER">OWNER</option>
-                  </select>
-                  <Button type="submit">Convidar</Button>
-                </div>
-              </form>
+              {canInviteMembers && (
+                <form
+                  onSubmit={onInvite}
+                  className="flex flex-col gap-3 border-t pt-4"
+                >
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={inviteEmail}
+                      onChange={(e) => onChangeInviteEmail(e.target.value)}
+                    />
+                    <select
+                      className="h-9 rounded-md border bg-background px-3 text-sm"
+                      value={inviteRole}
+                      onChange={(e) => onChangeInviteRole(e.target.value)}
+                    >
+                      <option value="MEMBER">MEMBER</option>
+                      <option value="ADMIN">ADMIN</option>
+                      <option value="OWNER">OWNER</option>
+                    </select>
+                    <Button type="submit">Convidar</Button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
   );
-}
+};
