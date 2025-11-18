@@ -46,6 +46,7 @@ export const CompanySchema = z.object({
   name: z.string(),
   logoUrl: z.string().nullable().optional(),
   createdAt: z.string().optional(),
+  userRole: z.string().optional(),
 });
 export type Company = z.infer<typeof CompanySchema>;
 
@@ -80,15 +81,16 @@ const MembersResponseSchema = z.object({
   data: z.array(MemberSchema),
   companyId: z.string(),
   total: z.number(),
+  currentUserRole: z.string(),
 });
 
-export async function getCompanyMembers(companyId: string): Promise<Member[]> {
+export async function getCompanyMembers(companyId: string): Promise<{ members: Member[]; currentUserRole: string }> {
   const res = await fetch(`${API_BASE}/company/${companyId}/members`, { headers: authHeaders(), cache: "no-store" });
   if (!res.ok) throw new Error("Falha ao buscar membros");
   const json = await res.json();
   const parsed = MembersResponseSchema.safeParse(json);
   if (!parsed.success) throw new Error("Formato inválido de membros");
-  return parsed.data.data;
+  return { members: parsed.data.data, currentUserRole: parsed.data.currentUserRole };
 }
 
 export async function inviteToCompany(companyId: string, email: string, role: string): Promise<void> {
@@ -152,4 +154,33 @@ export async function acceptInvite(inviteId: string): Promise<void> {
 export async function declineInvite(inviteId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/invites/${inviteId}/decline`, { method: "POST", headers: authHeaders() });
   if (!res.ok) throw new Error("Falha ao recusar convite");
+}
+
+export async function updateCompany(companyId: string, payload: { name: string; logoUrl?: string | null }): Promise<Company> {
+  const res = await fetch(`${API_BASE}/company/${companyId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Falha ao atualizar empresa");
+  const json = await res.json();
+  const parsed = CompanySchema.safeParse(json);
+  if (!parsed.success) throw new Error("Formato inválido de empresa");
+  return parsed.data;
+}
+
+export async function deleteCompany(companyId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/company/${companyId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Falha ao deletar empresa");
+}
+
+export async function deleteMember(companyId: string, membershipId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/company/${companyId}/member/${membershipId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Falha ao remover membro");
 }

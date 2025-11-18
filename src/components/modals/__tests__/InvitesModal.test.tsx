@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { InvitesModal } from '../InvitesModal';
-import type { PendingInvite } from '@/lib/api';
+import type { PendingInvite } from '@/services/invites.service';
 
 const mockInvites: PendingInvite[] = [
   {
