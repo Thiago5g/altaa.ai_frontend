@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Company, Member } from "@/lib/api";
+import type { Company, Member } from "@/services/companies.service";
 
 export interface MembersModalProps {
   open: boolean;
@@ -11,15 +11,24 @@ export interface MembersModalProps {
   members: Member[];
   inviteEmail: string;
   inviteRole: string;
+  currentUserRole: string | null;
   onClose: () => void;
   onChangeInviteEmail: (v: string) => void;
   onChangeInviteRole: (v: string) => void;
   onInvite: (e: React.FormEvent) => void;
+  onDeleteMember: (membershipId: string, memberRole: string) => void;
 }
 
 export const MembersModal = (props: MembersModalProps) => {
-  const { open, company, loading, members, inviteEmail, inviteRole, onClose, onChangeInviteEmail, onChangeInviteRole, onInvite } = props;
+  const { open, company, loading, members, inviteEmail, inviteRole, currentUserRole, onClose, onChangeInviteEmail, onChangeInviteRole, onInvite, onDeleteMember } = props;
   if (!open || !company) return null;
+
+  const canDeleteMember = (memberRole: string) => {
+    if (!currentUserRole) return false;
+    if (memberRole === "OWNER") return false;
+    return currentUserRole === "OWNER" || currentUserRole === "ADMIN";
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-6">
       <Card className="w/full max-w-xl relative">
@@ -37,6 +46,7 @@ export const MembersModal = (props: MembersModalProps) => {
                     <th className="text-left py-1">Nome</th>
                     <th className="text-left py-1">Email</th>
                     <th className="text-left py-1">Role</th>
+                    <th className="text-left py-1">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -45,10 +55,21 @@ export const MembersModal = (props: MembersModalProps) => {
                       <td className="py-1 pr-2">{m.name || "-"}</td>
                       <td className="py-1 pr-2">{m.email}</td>
                       <td className="py-1 pr-2 uppercase text-xs font-medium">{m.role}</td>
+                      <td className="py-1 pr-2">
+                        {canDeleteMember(m.role) && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => onDeleteMember(m.membershipId, m.role)}
+                          >
+                            Remover
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {members.length === 0 && (
-                    <tr><td colSpan={3} className="py-2 text-muted-foreground text-xs">Nenhum membro.</td></tr>
+                    <tr><td colSpan={4} className="py-2 text-muted-foreground text-xs">Nenhum membro.</td></tr>
                   )}
                 </tbody>
               </table>

@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { PendingInvite } from "@/lib/api";
+import type { PendingInvite } from "@/services/invites.service";
 import { toast } from "sonner";
 
 export interface InvitesModalProps {
